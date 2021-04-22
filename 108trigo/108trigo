@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+##
+## EPITECH PROJECT, 2020
+## 108
+## File description:
+## 108trigo
+##
+
+from src.error_check import error_check
+from src.init_class import init_classes
+from src.get.get_matrice import get_matrice
+from src.launch_corres_fonc import launch_corres_fonc
+from src.print_mat import print_matrice
+
+def main():
+    error_check()
+    math_fonc = init_classes()
+    matrice = get_matrice()
+    print_matrice(launch_corres_fonc(math_fonc, matrice))
+    exit (0)
+
+if __name__ == "__main__":
+    main()

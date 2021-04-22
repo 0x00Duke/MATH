@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+##
+## EPITECH PROJECT, 2020
+## 105torus
+## File description:
+## 105torus main file
+##
+
+from sys import argv as av
+
+
+def get_f_of_x(a, x):
+    # the position in the array it's the sub of a
+    return (a[4] * x ** 4) + (a[3] * x ** 3) + (a[2] * x ** 2) + (a[1] * x) + (a[0])
+
+
+##############################
+
+##############################
+
+
+def instructions():
+    print("USAGE")
+    print("\t./105torus opt a0 a1 a2 a3 a4 n")
+    print("\nDESCRIPTION")
+    print("\topt\tmethod option:")
+    print("\t\t\t1 for the bisection method")
+    print("\t\t\t2 for the Newton's method")
+    print("\t\t\t3 for the secant method")
+    print("\ta[0-4]\tcoefficients of the equation")
+    print("\tn\tprecision (the application of the polynomial to the solution should be smaller than 10^-n)")
+
+
+def is_int(value):
+    try:
+        int(value)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def check_arg():
+    x = 1
+    while x != len(av):
+        if not is_int(av[x]):
+            return 84
+        x += 1
+    return 0
+
+
+def err():
+    if len(av) == 2 and av[1] == "-h":
+        return 84
+    elif len(av) != 8:
+        return 84
+    elif check_arg() == 84:
+        return 84
+    elif not av[1] in ["1", "2", "3"]:
+        return 84
+    elif int(av[7]) <= 0:
+        return 84
+    return 0
+
+
+def bisection(a, b, A, n, rep):
+    c = (a + b) / 2
+    fa = get_f_of_x(A, a)
+    fc = get_f_of_x(A, c)
+
+    if fa < 0:
+        fa = -1
+    if fa > 0:
+        fa = 1
+    if fc < 0:
+        fc = -1
+    if fc > 0:
+        fc = 1
+
+    if rep == 100:
+        exit (0)
+    print("x = ", end='')
+    if abs(get_f_of_x(A,c)) <= 10**-n:
+        if len(str(round(c, n))) == n + 1:
+            print(round(c, n),end='0\n')
+        else:
+            print(round(c, n))
+    else:
+        print(round(c, n))
+        if fa == fc:
+            bisection(c, b, A, n, rep)
+            rep += 1
+        else:
+            rep += 1
+            bisection(a, c, A, n, rep)
+
+
+def newton(a0, a1, a2, a3, a4, n):
+    f = lambda x: (a4 * (x**4)) + (a3 * (x**3)) + (a2 * (x**2)) + (a1 * x) + a0
+    Df = lambda x: (4 * a4 * (x**3)) + (3 * a3 * (x**2)) + (2 * a2 * x) + a1
+    xn = 0.5
+
+    while abs(f(xn)) > 10**(-n):
+        print("x =", round(xn, n))
+        Dfxn = Df(xn)
+        if Dfxn == 0:
+            print('Zero derivative. No solution found.')
+            return None
+        xn = xn - f(xn) / Df(xn)
+    print("x =", round(xn, n))
+    return True
+
+def secant(A, n):
+    a = 1
+    b = 0
+    fa = get_f_of_x(A, a)
+    fb = get_f_of_x(A, b)
+    c = a - (fa * (a - b)/ (fa - fb))
+    rep = 0
+
+    if abs(get_f_of_x(A , c)) <= 10**-n:
+        print("x = ", end='')
+        print(round(c, n))
+    while abs(get_f_of_x(A, c)) > 10**-n:
+        if rep == 100:
+            break
+        fa = get_f_of_x(A, a)
+        fb = get_f_of_x(A, b)
+        if (fa == fb):
+            break
+        c = a - (fa * (a - b)/ (fa - fb))
+        b = a
+        a = c
+        print("x = ", end='')
+        print(round(c, n))
+        rep += 1
+
+def main():
+    if err() == 84:
+        instructions()
+        exit(84)
+    A = [int(av[2]), int(av[3]), int(av[4]), int(av[5]), int(av[6])]
+    n = int(av[7])
+    a = 0
+    b = 1
+    rep = 0
+    try:
+        if av[1] == '1':
+            bisection(a, b, A, n, rep)
+            exit (0)
+        if av[1] == '2':
+            newton(int(av[2]), int(av[3]), int(av[4]), int(av[5]), int(av[6]), n)
+            exit(0)
+        if av[1] == '3':
+            secant(A, n)
+            exit(0)
+    except Exception:
+        exit(84)
+    exit(0)
+
+if __name__ == '__main__':
+    main()

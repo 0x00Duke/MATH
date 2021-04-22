@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+##
+## EPITECH PROJECT, 2020
+## B-MAT-200-BAR-2-1-107transfer-leon.ducasse
+## File description:
+## 107transfer
+##
+
+require "./src/usage.rb"
+require "./src/error_check.rb"
+require "./src/operations.rb"
+
+def main()
+    av = ARGV
+    if av.length == 1 && av[0] == "-h"
+        usage()
+        exit (0)
+    end
+    if error_check() == 84
+        exit (84)
+    end
+    do_op(av)
+end
+
+main()

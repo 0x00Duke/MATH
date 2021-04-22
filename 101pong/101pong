@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+##
+## EPITECH PROJECT, 2020
+## 101pong.py
+## File description:
+## 101pong main function
+##
+
+import sys
+import math
+
+
+def instruction():
+    print("USAGE")
+    print("    ./101pong x0 y0 z0 x1 y1 z1 n")
+    print("\nDESCRIPTION")
+    print("    x0  ball abscissa at time t - 1")
+    print("    y0  ball ordinate at time t - 1")
+    print("    z0  ball altitude at time t - 1")
+    print("    x1  ball abscissa at time t")
+    print("    y1  ball ordinate at time t")
+    print("    z1  ball altitude at time t")
+    print("    n   time shift (greater than or equal to zero, integer)")
+
+
+def error():
+    if len(sys.argv) == 2 and sys.argv[1] == "-h":
+        instruction()
+        return 84
+    elif len(sys.argv) != 8:
+        print("\n/!\\Invalid number of arguments, please follow the following pattern ->/!\\\n")
+        instruction()
+        return 84
+    elif check_if_float() == 84 or not is_int(sys.argv[7]):
+        print("\n/!\\Invalid type please follow the following pattern-> !/!\\\n")
+        instruction()
+        return 84
+    elif int(sys.argv[7]) < 0:
+        print("\n/!\\n have to be greater or equal to zero/!\\\n")
+        instruction()
+        return 84
+    return 0
+
+
+def is_int(value):
+    try:
+        int(value)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def is_float(value):
+    try:
+        float(value)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def check_if_float():
+    x = 1
+    while x != 7:
+        if is_float(sys.argv[x]):
+            x += 1
+        else:
+            return 84
+    return 0
+
+
+def ball_velocity(x0, y0, z0, x1, y1, z1):
+    velocity = [x1 - x0, y1 - y0, z1 - z0]
+    return velocity
+
+
+def ball_pos(ball, vector, n):
+    while n != -1:
+        ball = [ball[0] + vector[0], ball[1] + vector[1], ball[2] + vector[2]]
+        n -= 1
+    return ball
+
+
+def norm_vector(vector):
+    norm = (vector[0] ** 2 + vector[1] ** 2 + vector[2] ** 2)
+    norm = math.sqrt(norm)
+    return norm
+
+
+def is_hit(z1, x0, x1, vector):
+    if z1 > 0 and vector[2] >= 0:
+        return 1
+    elif z1 < 0 and vector[2] <= 0:
+        return 1
+    elif x0 == x1:
+        return 1
+    return 0
+
+
+def angle_calc(norm, z0, z1):
+    angle = (z1 - z0) / norm
+    angle = math.asin(angle)
+    angle = math.degrees(angle)
+    return abs(angle)
+
+
+def main():
+    if error() != 0:
+        exit(84)
+    else:
+        x0 = float(sys.argv[1])
+        y0 = float(sys.argv[2])
+        z0 = float(sys.argv[3])
+        x1 = float(sys.argv[4])
+        y1 = float(sys.argv[5])
+        z1 = float(sys.argv[6])
+        n = int(sys.argv[7])
+
+        ball = [x0, y0, z0]
+        vector = ball_velocity(x0, y0, z0, x1, y1, z1)
+        ball_co = ball_pos(ball, vector, n)
+        print("The velocity vector of the ball is:\n(%.2f, %.2f, %.2f)" % (vector[0], vector[1], vector[2]))
+        print("At time t + %d, ball coordinates will be:\n(%.2f, %.2f, %.2f)" % (n, ball_co[0], ball_co[1], ball_co[2]))
+        if is_hit(z1, x0, x1, vector) == 1 or norm_vector(vector) == 0:
+            print("The ball won't reach the paddle.")
+        else:
+            angle = angle_calc(norm_vector(vector), z0, z1)
+            print("The incidence angle is:\n%.2f degrees" % angle)
+        exit(0)
+
+
+main()

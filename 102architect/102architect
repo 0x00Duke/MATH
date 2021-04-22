@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+##
+## EPITECH PROJECT, 2020
+## 101pong.py
+## File description:
+## 101pong main function
+##
+
+import sys
+import math
+
+
+def instruction():
+    print("USAGE")
+    print("     ./102architect x y transfo1 arg11 [arg12] [transfo2 arg12 [arg22]] ...")
+    print("\nDESCRIPTION")
+    print("     x   abscissa of the original point")
+    print("     y   ordinate of the original point")
+    print("\n   transfo arg1 [arg2]")
+    print("     -t i j  translation along vector (i, j)")
+    print("     -z m n  scaling by factors m (x-axis) and n (y-axis)")
+    print("     -r d    rotation centered in O by a d degree angle")
+    print("     -s d    reflection over the axis passing through O with an inclination angle of d degrees")
+
+
+def error():
+    if len(sys.argv) == 2 and sys.argv[1] == "-h":
+        instruction()
+        return 84
+    elif len(sys.argv) <= 3:
+        instruction()
+        return 84
+    elif not is_int(sys.argv[1]) or not is_int(sys.argv[2]):
+        instruction()
+        return 84
+    elif sys.argv[3] not in ["-t", "-z", "-r", "-s"]:
+        instruction()
+        return 84
+    elif not check_num_type_arg(len(sys.argv)):
+        instruction()
+        return 84
+    return 0
+
+
+def check_num_type_arg(ac):
+    x = 3
+    sup_num = 3
+    while x != ac:
+        if sys.argv[x] == "-t":
+            sup_num += 3
+        elif sys.argv[x] == "-z":
+            sup_num += 3
+        elif sys.argv[x] == "-r":
+            sup_num += 2
+        elif sys.argv[x] == "-s":
+            sup_num += 2
+        x += 1
+    if sup_num != ac:
+        return False
+    x = 3
+    while x != ac:
+        if sys.argv[x] == "-t":
+            if not is_int(sys.argv[x + 1]) or not is_int(sys.argv[x + 2]):
+                return False
+        elif sys.argv[x] == "-z":
+            if not is_int(sys.argv[x + 1]) or not is_int(sys.argv[x + 2]):
+                return False
+        elif sys.argv[x] == "-r":
+            if not is_int(sys.argv[x + 1]):
+                return False
+        elif sys.argv[x] == "-s":
+            if not is_int(sys.argv[x + 1]):
+                return False
+        x += 1
+    return True
+
+
+def is_int(value):
+    try:
+        int(value)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def is_float(value):
+    try:
+        float(value)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def mul_matrix_3_3(mat_1, mat_2):
+    result = [[0, 0, 0],
+              [0, 0, 0],
+              [0, 0, 1]]
+
+    result[0][0] = (mat_1[0][0] * mat_2[0][0]) + (mat_1[0][1] * mat_2[1][0]) + (mat_1[0][2] * mat_2[2][0])
+    result[0][1] = (mat_1[0][0] * mat_2[0][1]) + (mat_1[0][1] * mat_2[1][1]) + (mat_1[0][2] * mat_2[2][1])
+    result[0][2] = (mat_1[0][0] * mat_2[0][2]) + (mat_1[0][1] * mat_2[1][2]) + (mat_1[0][2] * mat_2[2][2])
+
+    result[1][0] = (mat_1[1][0] * mat_2[0][0]) + (mat_1[1][1] * mat_2[1][0]) + (mat_1[1][2] * mat_2[2][0])
+    result[1][1] = (mat_1[1][0] * mat_2[0][1]) + (mat_1[1][1] * mat_2[1][1]) + (mat_1[1][2] * mat_2[2][1])
+    result[1][2] = (mat_1[1][0] * mat_2[0][2]) + (mat_1[1][1] * mat_2[1][2]) + (mat_1[1][2] * mat_2[2][2])
+
+    return result
+
+
+def mul_matrix(mat, x, y):
+    result = [((mat[0][0] * x) + (mat[0][1] * y) + mat[0][2]), ((mat[1][0] * x) + (mat[1][1] * y) + mat[1][2]), 1]
+    return result
+
+
+def translation(pos, i, j):
+    trans_matrix = ([1, 0, i], [0, 1, j], [0, 0, 1])
+    result = mul_matrix(trans_matrix, pos[0], pos[1])
+    return result
+
+
+def scaling(pos, m, n):
+    scal_matrix = ([m, 0, 0], [0, n, 0], [0, 0, 1])
+    result = mul_matrix(scal_matrix, pos[0], pos[1])
+    return result
+
+
+def rotation(pos, d):
+    d = math.radians(d)
+    rot_matrix = ([math.cos(d), -math.sin(d), 0],
+                  [math.sin(d), math.cos(d), 0], [0, 0, 1])
+    result = mul_matrix(rot_matrix, pos[0], pos[1])
+    return result
+
+
+def reflection(pos, d):
+    d = math.radians(d)
+    ref_matrix = ([math.cos(2 * d), math.sin(2 * d), 0], [math.sin(2 * d), -math.cos(2 * d), 0], [0, 0, 1])
+    result = mul_matrix(ref_matrix, pos[0], pos[1])
+    return result
+
+
+def main():
+    if error() != 0:
+        exit(84)
+    else:
+        matrices = []
+        operations = []
+        x = int(sys.argv[1])
+        y = int(sys.argv[2])
+        result = [x, y, 1]
+        c = 3
+        while c != len(sys.argv):
+            if sys.argv[c] == '-t':
+                i = int(sys.argv[c + 1])
+                j = int(sys.argv[c + 2])
+                result = translation(result, i, j)
+                operations.extend(["Translation along vector (%d, %d)" % (i, j)])
+                matrices.append([[1, 0, i], [0, 1, j], [0, 0, 1]])
+                c += 2
+            elif sys.argv[c] == "-z":
+                m = int(sys.argv[c + 1])
+                n = int(sys.argv[c + 2])
+                result = scaling(result, m, n)
+                operations.extend(["Scaling by factors %d and %d" % (m, n)])
+                matrices.append([[m, 0, 0], [0, n, 0], [0, 0, 1]])
+                c += 2
+            elif sys.argv[c] == "-r":
+                d = int(sys.argv[c + 1])
+                result = rotation(result, d)
+                operations.extend(["Rotation by a %d degree angle" % d])
+                matrices.append([[math.cos(math.radians(d)), -math.sin(math.radians(d)), 0],
+                                 [math.sin(math.radians(d)), math.cos(math.radians(d)), 0], [0, 0, 1]])
+                c += 1
+            elif sys.argv[c] == "-s":
+                d = int(sys.argv[c + 1])
+                result = reflection(result, d)
+                operations.extend(["Reflection over an axis with an inclination angle of %d degrees" % d])
+                matrices.append([[math.cos(math.radians(2 * d)), math.sin(math.radians(2 * d)), 0],
+                                 [math.sin(math.radians(2 * d)), -math.cos(math.radians(2 * d)), 0],
+                                 [0, 0, 1]])
+                c += 1
+            c += 1
+        z = 0
+        while len(matrices) != 1:
+            matrices[0] = mul_matrix_3_3(matrices[0], matrices[1])
+            matrices.pop(1)
+        while z != len(operations):
+            print(operations[z])
+            z += 1
+        
+        print("%.2f\t%.2f\t%.2f" % (matrices[0][0][0], matrices[0][0][1], matrices[0][0][2]))
+        print("%.2f\t%.2f\t%.2f" % (matrices[0][1][0], matrices[0][1][1], matrices[0][1][2]))
+        print("%.2f\t%.2f\t%.2f" % (matrices[0][2][0], matrices[0][2][1], matrices[0][2][2]))
+        print("(%.2f, %.2f) => (%.2f, %.2f)" % (x, y, result[0], result[1]))
+
+        exit(0)
+
+
+main()

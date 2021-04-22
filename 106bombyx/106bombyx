@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+##
+## EPITECH PROJECT, 2020
+## B-MAT-200-BAR-2-1-106bombyx-jose-antonio.rodriguez-assalone
+## File description:
+## 106bombyx
+##
+
+from sys import argv as av
+from src.usage import usage
+from src.err import err
+from src.calcul import *
+
+def main():
+    if err() == 84:
+        exit (84)
+    elif len(av) == 3:
+        simple_calcul()
+    elif len(av) == 4:
+        complex_calcul()
+    exit (0)
+
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,477 @@
+#!/usr/bin/env python3
+##
+## EPITECH PROJECT, 2020
+## 101pong.py
+## File description:
+## 101pong main function
+##
+
+
+import math
+from sys import argv as av
+
+
+def instruction():
+
+    print("USAGE")
+    print("\t./103cipher message key flag\n")
+    print("DESCRIPTION")
+    print("\tmessage\ta message, made of ASCII characters")
+    print("\tkey\tthe encryption key, made of ASCII characters")
+    print("\tflag\t0 for the message to be encrypted, 1 to be decrypted")
+
+
+def error():
+
+    if len(av) == 2 and av[1] == "-h":
+        instruction()
+        return 84
+    elif len(av) != 4:
+        instruction()
+        return 84
+    elif not av[2]:
+        instruction()
+        return 84
+    elif av[3] != "0" and av[3] != "1":
+        instruction()
+        return 84
+    elif not is_str(av[1]) or not is_str(av[2]):
+        instruction()
+        return 84
+    return 0
+
+
+def is_int(value):
+
+    try:
+        int(value)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def is_str(value):
+
+    try:
+        str(value)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def cofactors(matrix):
+
+    matrix[0][1] = -1 * matrix[0][1]
+    matrix[1][0] = -1 * matrix[1][0]
+    matrix[1][2] = -1 * matrix[1][2]
+    matrix[2][1] = -1 * matrix[2][1]
+    return matrix
+
+
+def mul_determinant(original, adjugate):
+
+    y = 0
+    determinant = (original[0][0] * ((original[1][1] * original[2][2]) - original[1][2] * original[2][1]) -
+                   (original[0][1] * ((original[1][0] * original[2][2]) - (original[1][2] * original[2][0]))) +
+                   (original[0][2] * ((original[1][0] * original[2][1]) - (original[1][1] * original[2][0]))))
+    while y != len(adjugate):
+        x = 0
+        while x != len(adjugate[y]):
+            adjugate[y][x] = (1/determinant) * adjugate[y][x]
+            x += 1
+        y += 1
+    return adjugate
+
+
+def get_matrix_of_minors_3_3(key_matrix, size):
+
+    result = []
+    y = 0
+    x = 0
+
+    while y != size:
+        result.append([])
+        while x != size:
+            if x == 0 and y == 0:
+                result[y].append((key_matrix[1][1]*key_matrix[2][2]) - (key_matrix[1][2]*key_matrix[2][1]))
+            if x == 1 and y == 0:
+                result[y].append((key_matrix[1][0]*key_matrix[2][2]) - (key_matrix[1][2]*key_matrix[2][0]))
+            if x == 2 and y == 0:
+                result[y].append((key_matrix[1][0]*key_matrix[2][1]) - (key_matrix[1][1]*key_matrix[2][0]))
+            if x == 0 and y == 1:
+                result[y].append((key_matrix[0][1]*key_matrix[2][2]) - (key_matrix[0][2]*key_matrix[2][1]))
+            if x == 1 and y == 1:
+                result[y].append((key_matrix[0][0]*key_matrix[2][2]) - (key_matrix[0][2]*key_matrix[2][0]))
+            if x == 2 and y == 1:
+                result[y].append((key_matrix[0][0]*key_matrix[2][1]) - (key_matrix[0][1]*key_matrix[2][0]))
+            if x == 0 and y == 2:
+                result[y].append((key_matrix[0][1]*key_matrix[1][2]) - (key_matrix[0][2]*key_matrix[1][1]))
+            if x == 1 and y == 2:
+                result[y].append((key_matrix[0][0]*key_matrix[1][2]) - (key_matrix[0][2]*key_matrix[1][0]))
+            if x == 2 and y == 2:
+                result[y].append((key_matrix[0][0]*key_matrix[1][1]) - (key_matrix[0][1]*key_matrix[1][0]))
+            x += 1
+        x = 0
+        y += 1
+    return result
+
+
+def adj(matrix):
+
+    tmp = matrix[0][1]
+    matrix[0][1] = matrix[1][0]
+    matrix[1][0] = tmp
+    tmp = matrix[0][2]
+    matrix[0][2] = matrix[2][0]
+    matrix[2][0] = tmp
+    tmp = matrix[1][2]
+    matrix[1][2] = matrix[2][1]
+    matrix[2][1] = tmp
+    return matrix
+
+
+def get_small_square(lenght):
+
+    result = math.sqrt(lenght)
+    i = 1
+    while not result.is_integer():
+        result = math.sqrt(lenght + i)
+        i += 1
+    return result
+
+
+def create_key_matrix(av, size):
+
+    key_matrix = []
+    x = 0
+    y = 0
+    count = 0
+
+    while y != size:
+        key_matrix.append([])
+        while x != size:
+            if count < len(av[2]):
+                key_matrix[y].append(ord(av[2][y * size + x]))
+                x += 1
+                count += 1
+            else:
+                key_matrix[y].append(0)
+                x += 1
+        x = 0
+        y += 1
+
+    return key_matrix
+
+
+def create_mess_matrix(av, columns):
+
+    mess_matrix = []
+    x = 0
+    y = 0
+    count = 0
+    max_s = math.ceil(len(av[1]) / columns)
+
+    while y < max_s:
+        mess_matrix.append([])
+        while x != columns:
+            if count < len(av[1]):
+                mess_matrix[y].append(ord(av[1][y * int(columns) + x]))
+                x += 1
+                count += 1
+            else:
+                mess_matrix[y].append(0)
+                x += 1
+        x = 0
+        y += 1
+    return mess_matrix
+
+
+def get_point(mess_matrix, key_matrix, x, y, size):
+
+    result = 0
+    x_k = x
+    y_k = 0
+    x = 0
+    while x != size:
+        result += (mess_matrix[y][x] * key_matrix[y_k][x_k])
+        y_k += 1
+        x += 1
+    return result
+
+
+def get_encrypted(mess_matrix, key_matrix, size):
+
+    y_k = 0
+    x = 0
+    y = 0
+    result = []
+
+    while y != len(mess_matrix):
+        result.append([])
+        while x != size:
+            result[y].append(get_point(mess_matrix, key_matrix, x, y, size))
+            y_k += 1
+            x += 1
+        x = 0
+        y_k = 0
+        y += 1
+    return result
+
+
+def get_num_mess_3_3():
+
+    x = 0
+    arg = av[1].split()
+    if round(len(arg) % 3, 1) == 0.3:
+        arg.append('0')
+        arg.append('0')
+    elif round(len(arg) % 3, 1) == 0.6:
+        arg.append('0')
+    result = []
+    while x != len(arg) - 3:
+        result.append([int(arg[x]), int(arg[x + 1]), int(arg[x + 2])])
+        x += 3
+    result.append([int(arg[x]), int(arg[x + 1]), int(arg[x + 2])])
+    return result
+
+
+def get_3_3_inverse_matrix(key_matrix, small_square):
+
+    matrix_of_minors = get_matrix_of_minors_3_3(key_matrix, small_square)
+    matrix_of_cofactors = cofactors(matrix_of_minors)
+    adjoint = adj(matrix_of_cofactors)
+    inv = mul_determinant(key_matrix, adjoint)
+    return inv
+
+
+def de_encrypt_3_3(key_matrix, small_square, mess_num_matrix):
+
+    x = 0
+    y = 0
+    max_y = len(mess_num_matrix)
+    result = []
+    inverse_matrix = get_3_3_inverse_matrix(key_matrix, small_square)
+
+    while y != max_y:
+        result.append([])
+        while x != 3:
+            result[y].append(get_point(mess_num_matrix, inverse_matrix, x, y, 3))
+            x += 1
+        x = 0
+        y += 1
+    return result
+
+
+def get_num_mess_2_2():
+
+    x = 0
+    arg = av[1].split()
+    if len(arg) % 2 != 0:
+        arg.append('0')
+    result = []
+    while x != len(arg) - 2:
+        result.append([int(arg[x]), int(arg[x + 1])])
+        x += 2
+    result.append([int(arg[x]), int(arg[x + 1])])
+    return result
+
+
+def get_two_two_determinant(key_matrix):
+
+    result = (key_matrix[0][0] * key_matrix[1][1]) - (key_matrix[0][1] * key_matrix[1][0])
+    return result
+
+
+def get_two_two_inverse_matrix(key_matrix):
+
+    determinant = (get_two_two_determinant(key_matrix))
+    if determinant == 0:
+        return 0
+    inv = 1/determinant
+    matrix = []
+    matrix.append([inv*key_matrix[1][1], -1*(inv*key_matrix[0][1])])
+    matrix.append([-1*(inv*key_matrix[1][0]), inv*key_matrix[0][0]])
+    return matrix
+
+
+def de_encrypt_two_two(inverse_matrix, crypt_matrix):
+
+    x = 0
+    y = 0
+    max_y = len(crypt_matrix)
+    result = []
+
+    while y != max_y:
+        result.append([])
+        while x != 2:
+            result[y].append(get_point(crypt_matrix, inverse_matrix, x, y, 2.00))
+            x += 1
+        x = 0
+        y += 1
+
+    return result
+
+
+def encrypt():
+
+    y = 0
+    small_square = get_small_square(len(av[2]))
+    key_matrix = create_key_matrix(av, int(small_square))
+    mess_matrix = create_mess_matrix(av, int(small_square))
+    encrypted_mess = get_encrypted(mess_matrix, key_matrix, small_square)
+
+    print("Key matrix:")
+    while y != len(key_matrix):
+        x = 0
+        while x != len(key_matrix[y]) - 1:
+            print(key_matrix[y][x], end="\t")
+            x += 1
+        print(key_matrix[y][x], end="")
+        print()
+        y += 1
+    y = 0
+    print("\nEncrypted message:")
+    while y != len(encrypted_mess) - 1:
+        x = 0
+        while x != len(encrypted_mess[y]):
+            print(encrypted_mess[y][x], end=" ")
+            x += 1
+        y += 1
+    x = 0
+    while x != len(encrypted_mess[y]) - 1:
+        print(encrypted_mess[y][x], end=" ")
+        x += 1
+    print(encrypted_mess[y][x], end="")
+    print()
+
+
+def decrypt_2_2():
+
+    y = 0
+    small_square = get_small_square(len(av[2]))
+    key = create_key_matrix(av, int(small_square))
+    mess_num_matrix = get_num_mess_2_2()
+    inv = get_two_two_inverse_matrix(key)
+    decrypted_mess = de_encrypt_two_two(inv, mess_num_matrix)
+    print("Key matrix:")
+    while y != len(key):
+        x = 0
+        while x != len(inv[y]) - 1:
+            print(round(inv[y][x], 3), end="\t")
+            x += 1
+        print(round(inv[y][x], 3), end="")
+        print()
+        y += 1
+    y = 0
+    print("\nDecrypted message:")
+    while y != len(decrypted_mess):
+        x = 0
+        while x != len(decrypted_mess[y]):
+            print(chr(round(decrypted_mess[y][x])), end="")
+            x += 1
+        y += 1
+    print()
+    return 0
+
+
+def decrypt_3_3():
+
+    y = 0
+    small_square = get_small_square(len(av[2]))
+    key_matrix = create_key_matrix(av, int(small_square))
+    inv = get_3_3_inverse_matrix(key_matrix, small_square)
+    de_encrypted = de_encrypt_3_3(key_matrix, small_square, get_num_mess_3_3())
+    print("Key matrix:")
+    while y != len(key_matrix):
+        x = 0
+        while x != len(inv[y]) - 1:
+            if round(inv[y][x], 3) == -0.0:
+                print(0.0, end="\t")
+            else:
+                print(round(inv[y][x], 3), end="\t")
+            x += 1
+        print(round(inv[y][x], 3), end="")
+        print()
+        y += 1
+    y = 0
+    print("\nDecrypted message:")
+    while y != len(de_encrypted):
+        x = 0
+        while x != len(de_encrypted[y]):
+            print(chr(round(de_encrypted[y][x])), end="")
+            x += 1
+        y += 1
+    print()
+    return 0
+
+
+def get_1_1_inv_matrix(key_matrix):
+
+    if key_matrix[0][0] > 0:
+        inv_matrix = (1/key_matrix[0][0])
+        return inv_matrix
+    else:
+        return -1
+
+
+def de_encrypt_1_1(key_matrix, crypt_mess):
+
+    y = 0
+    max_y = len(crypt_mess)
+    inv_matrix = get_1_1_inv_matrix(key_matrix)
+    result = []
+
+    if inv_matrix != -1:
+        while y != max_y:
+            result.append(int(crypt_mess[y]) * inv_matrix)
+            y += 1
+        return result
+    else:
+        return inv_matrix
+
+
+def decrypt_1_1():
+
+    y = 0
+    small_square = get_small_square(len(av[2]))
+    key_matrix = create_key_matrix(av, int(small_square))
+    inv_matrix = get_1_1_inv_matrix(key_matrix)
+    de_encrypted_1_1 = de_encrypt_1_1(key_matrix, av[1].split())
+    if de_encrypted_1_1 == -1:
+        return 84
+    print("Key matrix:")
+    print(round(inv_matrix, 3))
+    print("\nDecrypted message:")
+    while y != len(de_encrypted_1_1):
+        print(chr(round(de_encrypted_1_1[y])), end="")
+        y += 1
+    print()
+    return 0
+
+
+def main(av):
+
+    if error() != 0:
+        exit(84)
+    try:
+        if av[3] == '0':
+            encrypt()
+        elif av[3] == '1':
+            if len(av[2]) == 1:
+                if decrypt_1_1() == 84:
+                    exit(84)
+            elif 1 < len(av[2]) <= 4:
+                decrypt_2_2()
+            elif 4 < len(av[2]) <= 9:
+                decrypt_3_3()
+    except Exception:
+        instruction()
+        exit(84)
+    exit(0)
+
+
+if __name__ == '__main__':
+    main(av)
+
